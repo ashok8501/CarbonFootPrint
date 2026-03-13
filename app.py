@@ -1,84 +1,137 @@
 import streamlit as st
+import plotly.express as px
 
-# Define emission factors (example values, replace with accurate data)
-EMISSION_FACTORS = {
-    "India": {
-        "Transportation": 0.14,  # kgCO2/km
-        "Electricity": 0.82,  # kgCO2/kWh
-        "Diet": 1.25,  # kgCO2/meal, 2.5kgco2/kg
-        "Waste": 0.1  # kgCO2/kg
-    }
+st.set_page_config(page_title="Carbon Footprint Calculator", page_icon="🌍", layout="centered")
+
+# ---------- BACKGROUND + UI STYLING ----------
+st.markdown("""
+<style>
+
+.stApp{
+background: linear-gradient(to right, #d4fc79, #96e6a1);
 }
 
-# Set wide layout and page name
-st.set_page_config(layout="wide", page_title="Personal Carbon Calculator")
+.block-container{
+background-color: rgba(255,255,255,0.90);
+padding: 2rem;
+border-radius: 15px;
+}
 
-# Streamlit app code
-st.title("Personal Carbon Calculator App ⚠️")
+h1{
+color:#0B6623;
+text-align:center;
+font-size:45px;
+}
 
-# User inputs
-st.subheader("🌍 Your Country")
-country = st.selectbox("Select", ["India"])
+h2{
+color:#145A32;
+}
 
-col1, col2 = st.columns(2)
+h3{
+color:#145A32;
+}
 
-with col1:
-    st.subheader("🚗 Daily commute distance (in km)")
-    distance = st.slider("Distance", 0.0, 100.0, key="distance_input")
+</style>
+""", unsafe_allow_html=True)
 
-    st.subheader("💡 Monthly electricity consumption (in kWh)")
-    electricity = st.slider("Electricity", 0.0, 1000.0, key="electricity_input")
+# ---------- TITLE ----------
+st.title("🌍 Carbon Footprint Calculator")
+st.write("Measure your environmental impact and learn how to live more sustainably.")
 
-with col2:
-    st.subheader("🍽️ Waste generated per week (in kg)")
-    waste = st.slider("Waste", 0.0, 100.0, key="waste_input")
+st.header("Enter Your Lifestyle Details")
 
-    st.subheader("🍽️ Number of meals per day")
-    meals = st.number_input("Meals", 0, key="meals_input")
+# ---------- USER INPUT ----------
+transport_km = st.number_input("🚗 Distance traveled per day (km)", min_value=0.0)
 
-# Normalize inputs
-if distance > 0:
-    distance = distance * 365  # Convert daily distance to yearly
-if electricity > 0:
-    electricity = electricity * 12  # Convert monthly electricity to yearly
-if meals > 0:
-    meals = meals * 365  # Convert daily meals to yearly
-if waste > 0:
-    waste = waste * 52  # Convert weekly waste to yearly
+electricity_units = st.number_input("⚡ Electricity used per month (kWh)", min_value=0.0)
 
-# Calculate carbon emissions
-transportation_emissions = EMISSION_FACTORS[country]["Transportation"] * distance
-electricity_emissions = EMISSION_FACTORS[country]["Electricity"] * electricity
-diet_emissions = EMISSION_FACTORS[country]["Diet"] * meals
-waste_emissions = EMISSION_FACTORS[country]["Waste"] * waste
+meat_meals = st.number_input("🍖 Meat meals per week", min_value=0)
 
-# Convert emissions to tonnes and round off to 2 decimal points
-transportation_emissions = round(transportation_emissions / 1000, 2)
-electricity_emissions = round(electricity_emissions / 1000, 2)
-diet_emissions = round(diet_emissions / 1000, 2)
-waste_emissions = round(waste_emissions / 1000, 2)
+# ---------- EMISSION FACTORS ----------
+transport_factor = 0.21
+electricity_factor = 0.82
+food_factor = 2.5
 
-# Calculate total emissions
-total_emissions = round(
-    transportation_emissions + electricity_emissions + diet_emissions + waste_emissions, 2
-)
+# ---------- CALCULATIONS ----------
+transport_emission = transport_km * transport_factor
+electricity_emission = electricity_units * electricity_factor / 30
+food_emission = meat_meals * food_factor
 
-if st.button("Calculate CO2 Emissions"):
+total_emission = transport_emission + electricity_emission + food_emission
 
-    # Display results
-    st.header("Results")
+# ---------- RESULT ----------
+st.header("Your Carbon Footprint")
 
-    col3, col4 = st.columns(2)
+st.success(f"Your estimated **daily carbon footprint is {total_emission:.2f} kg CO₂**")
 
-    with col3:
-        st.subheader("Carbon Emissions by Category")
-        st.info(f"🚗 Transportation: {transportation_emissions} tonnes CO2 per year")
-        st.info(f"💡 Electricity: {electricity_emissions} tonnes CO2 per year")
-        st.info(f"🍽️ Diet: {diet_emissions} tonnes CO2 per year")
-        st.info(f"🗑️ Waste: {waste_emissions} tonnes CO2 per year")
+# ---------- SUSTAINABILITY SCORE ----------
+if total_emission < 5:
+    score = 90
+    status = "🌱 Sustainable Lifestyle"
+elif total_emission < 10:
+    score = 60
+    status = "⚠ Moderate Impact"
+else:
+    score = 30
+    status = "🚨 High Carbon Lifestyle"
 
-    with col4:
-        st.subheader("Total Carbon Footprint")
-        st.success(f"🌍 Your total carbon footprint is: {total_emissions} tonnes CO2 per year")
-        st.warning("In 2021, CO2 emissions per capita for India was 1.9 tons of CO2 per capita. Between 1972 and 2021, CO2 emissions per capita of India grew substantially from 0.39 to 1.9 tons of CO2 per capita rising at an increasing annual rate that reached a maximum of 9.41% in 2021")
+st.subheader("Sustainability Score")
 
+st.write(f"Score: **{score}/100**")
+st.write(status)
+
+# ---------- CHART ----------
+st.header("Carbon Emission Breakdown")
+
+data = {
+"Category":["Transport","Electricity","Food"],
+"Emission":[transport_emission,electricity_emission,food_emission]
+}
+
+fig = px.pie(data,names="Category",values="Emission",title="Emission Distribution")
+
+st.plotly_chart(fig)
+
+# ---------- GLOBAL COMPARISON ----------
+st.header("Global Comparison")
+
+india_avg = 1.9
+world_avg = 4.5
+
+st.write(f"Your footprint: **{total_emission:.2f} kg/day**")
+st.write(f"Average Indian footprint: **{india_avg} kg/day**")
+st.write(f"Global average footprint: **{world_avg} kg/day**")
+
+# ---------- SUGGESTIONS ----------
+st.header("Suggestions to Reduce Carbon Footprint")
+
+if transport_emission > 2:
+    st.write("🚲 Use public transport, cycling or carpooling.")
+
+if electricity_emission > 2:
+    st.write("💡 Use LED lights and energy-efficient appliances.")
+
+if food_emission > 5:
+    st.write("🥗 Reduce meat consumption and minimize food waste.")
+
+if total_emission < 5:
+    st.success("Great job! Your lifestyle is environmentally friendly.")
+
+# ---------- SDG CONNECTION ----------
+st.header("Sustainable Development Goals")
+
+st.write("This project contributes to:")
+
+st.write("🌱 **SDG 7 – Affordable and Clean Energy**")
+st.write("🏙 **SDG 11 – Sustainable Cities and Communities**")
+st.write("♻ **SDG 12 – Responsible Consumption and Production**")
+st.write("🌍 **SDG 13 – Climate Action**")
+
+# ---------- CARBON OFFSET ----------
+st.header("Carbon Offset Suggestion")
+
+trees_needed = total_emission / 21
+
+st.write(f"To offset this carbon footprint, you could plant approximately **{trees_needed:.1f} trees per year**.")
+
+st.info("One tree absorbs around **21 kg CO₂ per year**.")
