@@ -1,14 +1,12 @@
 import streamlit as st
 import plotly.express as px
 
-# ---------- PAGE CONFIG ----------
 st.set_page_config(
     page_title="Advanced Carbon Footprint Calculator",
     page_icon="🌍",
     layout="wide"
 )
 
-# ---------- STYLING ----------
 st.markdown("""
 <style>
 .stApp {
@@ -25,18 +23,18 @@ h1, h2, h3 {
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- TITLE ----------
+
 st.title("🌍 Advanced Carbon Footprint Calculator")
 st.write("A detailed personal carbon tracker with realistic lifestyle inputs.")
 
-# ---------- USER TYPE ----------
+
 st.sidebar.header("👤 Profile")
 user_type = st.sidebar.selectbox(
     "Select your profile",
     ["Student", "Working Professional", "Family"]
 )
 
-# ---------- TIME MODE ----------
+
 time_mode = st.sidebar.radio("Select calculation mode", ["Daily", "Monthly", "Yearly"])
 
 multiplier = 1
@@ -45,9 +43,7 @@ if time_mode == "Monthly":
 elif time_mode == "Yearly":
     multiplier = 365
 
-# =========================================================
-# 🚗 TRANSPORT
-# =========================================================
+
 st.header("🚗 Transport")
 
 car_km = st.number_input("Car travel (km/day)", 0.0)
@@ -67,9 +63,6 @@ transport_emission = (
     train_km * train_factor
 )
 
-# =========================================================
-# ⚡ ELECTRICITY
-# =========================================================
 st.header("⚡ Electricity")
 
 ac_hours = st.number_input("AC usage (hours/day)", 0.0)
@@ -84,9 +77,7 @@ fridge_emission = 1.0 if fridge == "Yes" else 0
 
 electricity_emission = ac_emission + fan_emission + tv_emission + fridge_emission
 
-# =========================================================
-# 🍽 FOOD
-# =========================================================
+
 st.header("🍽 Food Consumption")
 
 veg_meals = st.number_input("Veg meals/week", 0)
@@ -106,9 +97,7 @@ food_emission = (
     dairy * dairy_factor
 ) / 7
 
-# =========================================================
-# 🗑 WASTE
-# =========================================================
+
 st.header("🗑 Waste")
 
 waste = st.number_input("Waste generated (kg/day)", 0.0)
@@ -119,18 +108,14 @@ recycle_bonus = -0.2 if recycle == "Yes" else 0
 
 waste_emission = waste * waste_factor + recycle_bonus
 
-# =========================================================
-# ✈ TRAVEL
-# =========================================================
+
 st.header("✈ Air Travel")
 
 flights = st.number_input("Flights per year", 0)
 
 flight_emission = (flights * 90) / 365
 
-# =========================================================
-# 📊 TOTAL
-# =========================================================
+
 total_emission = (
     transport_emission +
     electricity_emission +
@@ -139,16 +124,11 @@ total_emission = (
     flight_emission
 ) * multiplier
 
-# =========================================================
-# 🎯 RESULT
-# =========================================================
 st.header("📊 Your Carbon Footprint")
 
 st.success(f"Estimated {time_mode.lower()} carbon footprint: **{total_emission:.2f} kg CO₂**")
 
-# =========================================================
-# 🧠 SCORE
-# =========================================================
+
 if total_emission < 5:
     score = 90
     status = "🌱 Excellent Sustainable Lifestyle"
@@ -163,9 +143,6 @@ st.subheader("Sustainability Score")
 st.write(f"Score: **{score}/100**")
 st.write(status)
 
-# =========================================================
-# 📈 CHART
-# =========================================================
 st.header("📊 Emission Breakdown")
 
 data = {
@@ -182,9 +159,6 @@ data = {
 fig = px.pie(data, names="Category", values="Emission", title="Emission Distribution")
 st.plotly_chart(fig)
 
-# =========================================================
-# 🌍 COMPARISON
-# =========================================================
 st.header("🌍 Global Comparison")
 
 india_avg = 1.9 * multiplier
@@ -194,9 +168,6 @@ st.write(f"Your footprint: **{total_emission:.2f} kg**")
 st.write(f"India average: **{india_avg} kg**")
 st.write(f"World average: **{world_avg} kg**")
 
-# =========================================================
-# 💡 SMART SUGGESTIONS
-# =========================================================
 st.header("💡 Smart Suggestions")
 
 if car_km > 20:
@@ -214,26 +185,18 @@ if waste > 2:
 if total_emission < 5:
     st.success("Great job! You are eco-friendly.")
 
-# =========================================================
-# 🌳 CARBON OFFSET
-# =========================================================
+
 st.header("🌳 Carbon Offset")
 
 trees_needed = total_emission / 21
 
 st.write(f"You need approx **{trees_needed:.1f} trees/year** to offset emissions.")
 
-# =========================================================
-# 📚 INFO
-# =========================================================
 with st.expander("ℹ About this calculator"):
     st.write("""
     This calculator uses approximate emission factors based on global research.
     It is designed for awareness and lifestyle improvement, not exact scientific measurement.
     """)
 
-# =========================================================
-# 🚀 FOOTER
-# =========================================================
 st.markdown("---")
 st.markdown("Built with ❤️ using Streamlit")
